@@ -582,28 +582,35 @@ RCT_EXPORT_METHOD(getCameraIds:(RCTPromiseResolveBlock)resolve
 #endif
 
     NSMutableArray *res = [NSMutableArray array];
+    
 
-
+    /*deviceTypes.append(.builtInDualCamera)
+    deviceTypes.append(.builtInWideAngleCamera)
+    deviceTypes.append(.builtInTelephotoCamera)
+    deviceTypes.append(.builtInTrueDepthCamera)
+    if #available(iOS 13.0, *) {
+      deviceTypes.append(.builtInTripleCamera)
+      deviceTypes.append(.builtInDualWideCamera)
+      deviceTypes.append(.builtInUltraWideCamera)
+    }
+    if #available(iOS 15.4, *) {
+      deviceTypes.append(.builtInLiDARDepthCamera)
+    }*/
     // need to filter/search devices based on iOS version
     // these warnings can be easily seen on XCode
     if (@available(iOS 10.0, *)) {
-        NSArray *captureDeviceType;
-
-
+        NSMutableArray *captureDeviceType = [NSMutableArray array];
+        [captureDeviceType addObject:AVCaptureDeviceTypeBuiltInWideAngleCamera];
+        [captureDeviceType addObject:AVCaptureDeviceTypeBuiltInTelephotoCamera];
+        [captureDeviceType addObject:AVCaptureDeviceTypeBuiltInTrueDepthCamera];
         if (@available(iOS 13.0, *)) {
-            captureDeviceType = @[
-                AVCaptureDeviceTypeBuiltInWideAngleCamera,
-                AVCaptureDeviceTypeBuiltInTelephotoCamera
-                #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
-                    ,AVCaptureDeviceTypeBuiltInUltraWideCamera
-                #endif
-            ];
+            [captureDeviceType addObject:AVCaptureDeviceTypeBuiltInTripleCamera];
+            [captureDeviceType addObject:AVCaptureDeviceTypeBuiltInDualWideCamera];
+            [captureDeviceType addObject:AVCaptureDeviceTypeBuiltInUltraWideCamera];
         }
-        else{
-            captureDeviceType = @[
-                AVCaptureDeviceTypeBuiltInWideAngleCamera,
-                AVCaptureDeviceTypeBuiltInTelephotoCamera
-            ];
+       
+        if (@available(iOS 15.4, *)) {
+            [captureDeviceType addObject:AVCaptureDeviceTypeBuiltInLiDARDepthCamera];
         }
 
 
@@ -614,19 +621,6 @@ RCT_EXPORT_METHOD(getCameraIds:(RCTPromiseResolveBlock)resolve
          position:AVCaptureDevicePositionUnspecified];
 
         for(AVCaptureDevice *camera in [captureDevice devices]){
-
-            // exclude virtual devices. We currently cannot use
-            // any virtual device feature like auto switching or
-            // depth of field detetion anyways.
-            #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
-                if (@available(iOS 13.0, *)) {
-                    if([camera isVirtualDevice]){
-                        continue;
-                    }
-                }
-            #endif
-
-
             if([camera position] == AVCaptureDevicePositionFront) {
                 [res addObject: @{
                     @"id": [camera uniqueID],
@@ -667,6 +661,7 @@ RCT_EXPORT_METHOD(getCameraIds:(RCTPromiseResolveBlock)resolve
         }
     }
 
+    NSLog(@"Device Types ****%@", res);
     resolve(res);
 }
 
